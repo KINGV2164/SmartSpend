@@ -1,0 +1,217 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Bhai&family=Work+Sans:wght@400;600&display=swap');
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Work Sans', sans-serif;
+    background-color: #F9EAE1;
+}
+
+/* ...existing code... */
+
+.navbar {
+  background-color: #8b5c5c;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  height: 60px;
+  border-bottom: 4px solid #7d4c4c;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.nav-logo {
+  height: 70px;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+.navbar nav {
+  display: flex;
+  gap: 18px;
+}
+
+.navbar nav a {
+  color: #7d4c4c;
+  text-decoration: none;
+  font-size: 18px;
+  font-family: 'Baloo Bhai', cursive;
+  font-weight: 700;
+  background: #f5e9df;
+  border-radius: 18px 18px 0 0;
+  padding: 8px 24px;
+  margin-right: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  border: none;
+  transition: background 0.2s;
+  position: relative;
+  top: 8px;
+}
+
+.navbar nav a.active,
+.navbar nav a:focus {
+  background: #F9EAE1;
+  color: #8b5c5c;
+  border-bottom: 3px solid #8b5c5c;
+  top: 4px;
+}
+
+.main-content {
+    padding: 32px 40px 120px 40px;
+}
+
+h1 {
+    font-family: 'Baloo Bhai', cursive;
+    font-size: 2em;
+    margin-bottom: 24px;
+    color: #111;
+}
+
+.dashboard {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 40px;
+    margin-top: 40px;
+    justify-content: center;
+    padding-left: 40px;
+    padding-right: 40px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dashboard .card {
+    background-color: #b7a89a;
+    border-radius: 16px;
+    box-shadow: 4px 8px 8px rgba(0,0,0,0.10);
+    padding: 28px 28px 40px 28px;
+    width: 100%;
+    min-width: 260px;
+    max-width: 350px;
+    box-sizing: border-box;
+    color: #222;
+    font-family: 'Work Sans', sans-serif;
+    position: relative;
+}
+
+.card h2 {
+    margin: 0 0 12px 0;
+    font-size: 1.1em;
+    font-family: 'Baloo Bhai', cursive;
+    font-weight: 700;
+    color: #222;
+}
+
+.card .amount {
+    font-size: 2.2em;
+    font-weight: 900;
+    font-family: 'Baloo Bhai', cursive;
+    margin: 0 0 18px 0;
+    color: #111;
+    letter-spacing: 1px;
+}
+
+.card .amount.negative {
+    color: #222;
+}
+
+.card .amount.positive {
+    color: #1a7e1a;
+}
+
+.card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.card ul li {
+    margin-bottom: 8px;
+    font-size: 1em;
+    color: #222;
+}
+
+.card ul li:before {
+    content: "✓";
+    color: #222;
+    margin-right: 8px;
+    font-size: 1em;
+}
+
+.update-bar {
+    position: fixed;
+    left: 48px;
+    right: 48px;
+    bottom: 150px;
+    background: #b7a89a;
+    border-radius: 22px;
+    padding: 16px 24px;
+    font-size: 1.3em;
+    font-family: 'Baloo Bhai', cursive;
+    font-weight: 700;
+    color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    z-index: 100;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.update-bar .success {
+    font-size: 1em;
+    font-family: 'Work Sans', sans-serif;
+    color: #222;
+    font-weight: 600;
+}
+
+.floating-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 32px;
+    width: 60px;
+    height: 60px;
+    background: #b7a89a;
+    color: #222;
+    border-radius: 50%;
+    border: 5px solid #000000;
+    font-size: 2.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 200;
+}
+
+.floating-btn span {
+    font-size: 1.5em;
+    font-weight: 900;
+}
+
+@media (max-width: 1024px) {
+    .dashboard {
+        flex-direction: column;
+        gap: 24px;
+        align-items: center;
+    }
+    .dashboard .card {
+        width: 90%;
+        max-width: none;
+    }
+    .update-bar {
+        left: 10px;
+        right: 10px;
+        font-size: 1.1em;
+        padding: 16px 12px;
+    }
+    .floating-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 2em;
+        border-width: 6px;
+    }
+}

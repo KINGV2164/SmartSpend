@@ -1,0 +1,70 @@
+<!-- templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SmartSpend – Home</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+</head>
+<body>
+    
+    <header class="navbar">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="SmartSpend Logo" class="nav-logo">
+    <nav>
+        <a href="/home" class="active">Home</a>
+        <a href="/add" >Add Expense</a>
+        <a href="/summary">Summary</a>
+        <a href="/saving">Saving</a>
+        <a href="/settings">Settings</a>
+        <a href="/logout" style="float: right; margin-left: 20px;">Logout</a>
+    </nav>
+    </header>
+
+  <main>
+    <div class="dashboard">
+      <section class="card">
+        <h2>This Week</h2>
+        <p>${{ total_week }}</p>
+      </section>
+
+      <section class="card">
+        <h2>This Month</h2>
+        <p>${{ total_month }}</p>
+      </section>
+
+      <section class="card">
+        <h2>Savings</h2>
+        <p>${{ total_saved }}</p>
+      </section>
+    </div>
+
+    {% if yearly %}
+    <section class="update-bar income-summary">
+      <div>
+        Update/save income: ${{ yearly }}
+      </div>
+      <form action="/update-income" method="POST" style="display: flex; gap: 12px; align-items: center;">
+        <input type="number" name="income" placeholder="New Yearly Income" required style="font-size: 1em; padding: 6px 12px; border-radius: 12px; border: none;">
+        <button type="submit" style="font-family: 'Baloo Bhai', cursive; font-weight: 700; background: #7d4c4c; color: #f5e9df; border: none; border-radius: 12px; padding: 8px 16px; cursor: pointer;">Update Income</button>
+      </form>
+      {% if income_updated %}
+      <div class="success">Saved successfully</div>
+      {% endif %}
+    </section>
+    {% else %}
+    <section class="update-bar income-form">
+      <div>
+        Enter Your Yearly Income
+      </div>
+      <form action="/set-income" method="POST" style="display: flex; gap: 12px; align-items: center;">
+        <input type="number" name="income" placeholder="Yearly Income" required style="font-size: 1em; padding: 6px 12px; border-radius: 12px; border: none;">
+        <button type="submit" style="font-family: 'Baloo Bhai', cursive; font-weight: 700; background: #7d4c4c; color: #f5e9df; border: none; border-radius: 12px; padding: 8px 16px; cursor: pointer;">Save Income</button>
+      </form>
+      <div class="success"></div>
+    </section>
+    {% endif %}
+
+    <a href="/add" class="floating-btn">+</a>
+  </main>
+</body>
+</html>

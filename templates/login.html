@@ -1,0 +1,54 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login – SmartSpend</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="left-side">
+            <img src="{{ url_for('static', filename='desk-mockup.jpg') }}" alt="Background">
+        </div>
+
+        <div class="right-side">
+            <div class="login-box">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="SmartSpend Logo" class="logo-img">
+
+                <h1>{{ 'Set Up SmartSpend' if setup else 'SmartSpend Login' }}</h1>
+
+                {% with messages = get_flashed_messages() %}
+                  {% if messages %}
+                    <div class="error-msg">{{ messages[0] }}</div>
+                  {% endif %}
+                {% endwith %}
+
+                <form action="/login" method="POST">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+
+                    <div class="checkbox">
+                        <input type="checkbox" id="showPassword">
+                        <label for="showPassword">Show Password</label>
+                    </div>
+
+                    <button type="submit">{{ 'Create Account' if setup else 'Login' }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const showPass = document.getElementById('showPassword');
+        const passwordField = document.getElementById('password');
+
+        showPass.addEventListener('change', function () {
+            passwordField.type = this.checked ? 'text' : 'password';
+        });
+    </script>
+</body>
+</html>

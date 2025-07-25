@@ -1,0 +1,221 @@
+/* Saving Page CSS - matches the provided screenshot */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Bhai&family=Work+Sans:wght@400;600&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Work Sans', sans-serif;
+  background-color: #f5ebe6; /* light beige background */
+  color: #6b4c4c; /* muted brown text */
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 40px 20px;
+}
+
+/* Navbar styling */
+.navbar {
+  background-color: #8b5c5c;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0;
+  height: 60px;
+  border-bottom: 4px solid #7d4c4c;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.nav-logo {
+  height: 70px;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+.navbar nav {
+  display: flex;
+  gap: 18px;
+}
+
+.navbar nav a {
+  color: #7d4c4c;
+  text-decoration: none;
+  font-size: 18px;
+  font-family: 'Baloo Bhai', cursive;
+  font-weight: 700;
+  background: #f5e9df;
+  border-radius: 18px 18px 0 0;
+  padding: 8px 24px;
+  margin-right: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  border: none;
+  transition: background 0.2s;
+  position: relative;
+  top: 8px;
+}
+
+.navbar nav a.active,
+.navbar nav a:focus {
+  background: #F9EAE1;
+  color: #8b5c5c;
+  border-bottom: 3px solid #8b5c5c;
+  top: 4px;
+}
+/* Main content */
+main {
+  margin-top: 30px;
+}
+
+/* Page title */
+main h2 {
+  font-weight: 700;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Goals container */
+.goals-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+/* Individual goal card */
+.goal-card {
+  background-color: #c9b8b0; /* muted light brown */
+  border-radius: 10px;
+  padding: 20px;
+  width: 280px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 5px rgba(107,76,76,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Goal title */
+.goal-card h3 {
+  font-weight: 700;
+  font-size: 18px;
+  margin: 0 0 10px 0;
+}
+
+/* Labels */
+.goal-card label {
+  font-weight: 700;
+  font-size: 14px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+/* Amount text */
+.goal-card p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+/* Buttons container */
+.goal-card .buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* Buttons */
+.goal-card button {
+  background-color: #6b4c4c;
+  color: #f5ebe6;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+}
+
+.goal-card button:hover {
+  background-color: #5a3d3d;
+}
+
+/* Success message */
+.success-message {
+  font-weight: 700;
+  font-size: 12px;
+  color: #3a6b3a;
+  margin-top: 5px;
+}
+
+/* Total amount saved section */
+.total-saved {
+  margin-top: 40px;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.total-saved strong {
+  font-weight: 900;
+}
+
+/* Add new goal button container */
+.add-goal-container {
+  margin-top: 40px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Add new goal button */
+.add-goal-container button {
+  background-color: #6b4c4c;
+  color: #f5ebe6;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-goal-container button:hover {
+  background-color: #5a3d3d;
+}
+
+/* Add goal success message */
+.add-goal-success {
+  font-weight: 700;
+  font-size: 12px;
+  color: #3a6b3a;
+}
+
+/* Form inputs for adding/updating goals */
+form input[type="text"],
+form input[type="number"] {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #bfa49a;
+  font-size: 14px;
+  margin-right: 8px;
+  width: 140px;
+  box-sizing: border-box;
+}
+
+form button {
+  background-color: #6b4c4c;
+  color: #f5ebe6;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+}
+
+form button:hover {
+  background-color: #5a3d3d;
+}

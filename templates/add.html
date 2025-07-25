@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Expense – SmartSpend</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='add.css') }}">
+</head>
+<body>
+  <header class="navbar">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="SmartSpend Logo" class="nav-logo">
+    <nav>
+      <a href="/home">Home</a>
+      <a href="/add" class="active">Add Expense</a>
+      <a href="/summary">Summary</a>
+      <a href="/saving">Saving</a>
+    </nav>
+  </header>
+  <div class="container">
+    <main class="add-expense">
+      <h2>Add Expense</h2>
+      <form action="/save-expense" method="POST" class="expense-form" autocomplete="off">
+        <label for="amount" class="form-label">Amount:</label>
+        <input type="number" id="amount" name="amount" step="0.01" placeholder="$XXXXXX" required class="form-input">
+
+        <label for="date" class="form-label">Date:</label>
+        <input type="date" id="date" name="date" required class="form-input" value="{{ today }}">
+
+        <label for="description" class="form-label">Description:</label>
+        <input type="text" id="description" name="description" placeholder="...." class="form-input" autocomplete="off">
+
+        <label for="category" class="form-label">Category:</label>
+        <div style="position:relative;">
+          <select id="category" name="category" required class="form-input">
+            <option value="">......</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+          </select>
+          <div id="suggestion-list" class="suggestion-list" style="display:none;"></div>
+        </div>
+
+        <button type="submit" class="save-btn">Save Expense</button>
+        <div id="success-message" class="success-message" style="display:none;">
+          Added expense successfully
+        </div>
+      </form>
+    </main>
+  </div>
+  <script id="keywords-data" type="application/json">
+    {{ keywords_to_categories | tojson }}
+  </script>
+    <script>
+    // --- Category suggestion logic ---
+    const descField = document.getElementById('description');
+    const categorySelect = document.getElementById('category');
+    const suggestionList = document.getElementById('suggestion-list');
+    const keywordsMap = JSON.parse(document.getElementById('keywords-data').textContent);
+
+    // Build a flat list of categories and their keywords
+    const categoryKeywords = [];
+    for (const [keys, cat] of Object.entries(keywordsMap)) {
+      keys.split(',').forEach(k => {
+        categoryKeywords.push({ keyword: k.trim(), category: cat });
+      });
+    }
+    const uniqueCategories = [...new Set(Object.values(keywordsMap))];
+
+    function showAllCategories() {
+      suggestionList.innerHTML = uniqueCategories.map(cat =>
+        `<div class="suggestion-item" tabindex="0">${cat}</div>`
+      ).join('');
+      suggestionList.style.display = 'block';
+    }
+
+    descField.addEventListener('input', function() {
+      const text = this.value.toLowerCase();
+      let matches = [];
+      if (text.length > 0) {
+        for (const { keyword, category } of categoryKeywords) {
+          if (text.includes(keyword) && !matches.includes(category)) {
+            matches.push(category);
+          }
+        }
+      }
+      // If no keyword match, show all categories as fallback
+      if (matches.length === 0 && text.length > 0) {
+        matches = uniqueCategories.filter(cat =>
+          cat.toLowerCase().includes(text)
+        );
+      }
+      // Show suggestions
+      if (matches.length > 0) {
+        suggestionList.innerHTML = matches.map(cat =>
+          `<div class="suggestion-item" tabindex="0">${cat}</div>`
+        ).join('');
+        suggestionList.style.display = 'block';
+      } else {
+        suggestionList.style.display = 'none';
+      }
+    });
+
+    // Show all categories when description is empty
+    descField.addEventListener('focus', function() {
+      if (descField.value.length === 0) {
+        showAllCategories();
+      } else {
+        descField.dispatchEvent(new Event('input'));
+      }
+    });
+
+    // Click or keyboard select
+    suggestionList.addEventListener('mousedown', function(e) {
+      if (e.target.classList.contains('suggestion-item')) {
+        categorySelect.value = e.target.textContent;
+        suggestionList.style.display = 'none';
+      }
+    });
+
+    // Hide suggestions on blur
+    descField.addEventListener('blur', function() {
+      setTimeout(() => suggestionList.style.display = 'none', 120);
+    });
+  </script>
+</body>
+</html>

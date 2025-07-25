@@ -1,0 +1,110 @@
+<!-- templates/summary.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Summary – SmartSpend</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='summary.css') }}" />
+</head>
+<body>
+  <header class="navbar">
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="SmartSpend Logo" class="nav-logo" />
+  <nav>
+    <a href="/home">HomePage</a>
+    <a href="/add">Add Expense</a>
+    <a href="/summary" class="active">Summary</a>
+    <a href="/saving">Saving</a>
+  </nav>
+  </header>
+  
+  <div class="container">
+    <main class="summary-page">
+        <div class="controls">
+          <button id="weekly" class="{{ 'active' if view_mode == 'weekly' else '' }}" onclick="window.location.href='?view=weekly'">Weekly View</button>
+          <button id="monthly" class="{{ 'active' if view_mode == 'monthly' else '' }}" onclick="window.location.href='?view=monthly'">Monthly View</button>
+          <select id="period" onchange="window.location.href='?view={{ view_mode }}&period='+this.value">
+            {% for period in periods %}
+              <option value="{{ period }}" {% if period == selected_period %}selected{% endif %}>{{ period }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <h2>View Expense table</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if expenses %}
+                {% for exp in expenses %}
+                  <tr>
+                    <td>{{ exp[2] }}</td>
+                    <td>${{ "%.2f"|format(exp[1]) }}</td>
+                    <td>{{ exp[4] }}</td>
+                    <td>
+                      <a href="/edit-expense/{{ exp[0] }}" title="Edit">&#9998;</a>
+                      <a href="/delete-expense/{{ exp[0] }}" title="Delete" onclick="return confirm('Delete this expense?')">&#128465;</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="4">No expenses recorded</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="summary-bottom">
+          <div class="category-summary">
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Summary Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cat, tot in summary_data %}
+                  <tr>
+                    <td>{{ cat }}</td>
+                    <td>${{ "%.2f"|format(tot) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="saving-progress">
+            <h3>Saving progress</h3>
+            <div class="progress-label">{{ saving_percent }}%</div>
+            <div class="progress-bar">
+              <div class="fill" style="width: {{ saving_percent }}%;"></div>
+            </div>
+            <div class="progress-text">{{ saving_percent }}% left to reach saving goal</div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>
+            <div>Total spent in this time period: ${{ "%.2f"|format(total_spent) }}</div>
+            <div>Total saved in this time period: ${{ "%.2f"|format(total_saved) }}</div>
+          </div>
+          <div>
+            <button id="export" onclick="window.location.href='/export-report?view={{ view_mode }}&period={{ selected_period }}'">Export Report</button>
+            <select id="footer-period" onchange="window.location.href='?view={{ view_mode }}&period='+this.value">
+              {% for period in periods %}
+                <option value="{{ period }}" {% if period == selected_period %}selected{% endif %}>{{ period }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
