@@ -397,11 +397,14 @@ def add_saving_expense():
     amount = float(request.form['amount'])
     date_val = request.form['date']
     description = request.form.get('description', '')
-    goal_name = request.form['goal_name']
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
+    c.execute('SELECT name FROM Goals WHERE is_active = 1 LIMIT 1')
+    active_goal = c.fetchone()
+    goal_name = active_goal[0] if active_goal else 'No Active Goal'
+
     c.execute('INSERT INTO Expenses (amount, date, description, category, timestamp) VALUES (?, ?, ?, ?, ?)',
               (amount, date_val, goal_name if description == '' else description, 'saving', timestamp))
     conn.commit()

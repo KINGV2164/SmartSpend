@@ -10,6 +10,7 @@ body {
 
 .container {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 20px 40px 20px;
 }
@@ -25,6 +26,12 @@ body {
   border-bottom: 4px solid #7d4c4c;
   border-radius: 0 0 10px 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  margin-top: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .nav-logo {
@@ -64,7 +71,9 @@ body {
 }
 /* Main content */
 main {
-  margin-top: 30px;
+  margin-top: 90px;
+  margin-right: 25px;
+  margin-left: 25px; /* increased margin to account for fixed navbar height */
 }
 
 /* Page title */
@@ -83,12 +92,12 @@ main h2 {
 
 /* Individual goal card */
 .goal-card {
-  background-color: #c9b8b0; /* muted light brown */
+  background-color: #D5C5BC; /* muted light brown */
   border-radius: 10px;
   padding: 20px;
   width: 280px;
   box-sizing: border-box;
-  box-shadow: 0 2px 5px rgba(107,76,76,0.3);
+  box-shadow: 0 px 5px rgba(107,76,76,0.3);
   display: flex;
   flex-direction: column;
   gap: 10px;

@@ -1,13 +1,44 @@
-<!-- templates/saving.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Saving Goals – SmartSpend</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='saving.css') }}">
+  <style>
+    /* CSS for toggleable forms using checkboxes */
+    .toggle-form {
+      display: none;
+      margin-top: 10px;
+    }
+    input[type="checkbox"]:checked + label + .toggle-form {
+      display: block;
+    }
+    .toggle-label {
+      cursor: pointer;
+      color: #f5ebe6;
+      font-weight: 700;
+      background-color: #6b4c4c;
+      border-radius: 6px;
+      padding: 8px 12px;
+      text-decoration: none;
+      margin-bottom: 5px;
+      display: inline-block;
+      border: none;
+      font-size: 14px;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    .toggle-label:hover {
+      background-color: #5a3d3d;
+    }
+    /* Hide the checkboxes */
+    input[type="checkbox"] {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
+  <div class="main-content">
     <header class="navbar">
       <img src="{{ url_for('static', filename='logo.png') }}" alt="SmartSpend Logo" class="nav-logo">
       <nav>
@@ -31,11 +62,16 @@
             <p>${{ "%.2f"|format(goal[4]) }} remaining</p>
 
             <div class="buttons">
-              <form action="/update-goal/{{ goal[0] }}" method="POST">
-                <input type="text" name="updated_name" placeholder="New name" required>
-                <input type="number" name="updated_target" step="0.01" placeholder="New target" required>
-                <button type="submit">Update Goal</button>
-              </form>
+              <!-- Hidden checkbox for toggling update form -->
+              <input type="checkbox" id="toggle-update-{{ goal[0] }}">
+              <label for="toggle-update-{{ goal[0] }}" class="toggle-label">Update Goal</label>
+              <div class="toggle-form">
+                <form action="/update-goal/{{ goal[0] }}" method="POST">
+                  <input type="text" name="updated_name" placeholder="New name" required>
+                  <input type="number" name="updated_target" step="0.01" placeholder="New target" required>
+                  <button type="submit">Submit Update</button>
+                </form>
+              </div>
 
               {% if not goal[3] %}
                 <form action="/set-active/{{ goal[0] }}" method="POST">
@@ -45,9 +81,6 @@
                 <p><strong>Active Goal</strong></p>
               {% endif %}
             </div>
-
-            {# Removed check for updated_success since goal is a tuple and does not have this attribute #}
-            {# If you want to show success messages, consider passing a separate variable from backend #}
           </div>
         {% endfor %}
       </div>
@@ -57,33 +90,37 @@
       </div>
 
       <div class="add-goal-container">
-        <form action="/add-goal" method="POST">
-          <input type="text" name="goal_name" placeholder="Enter goal name" required>
-          <input type="number" name="target" step="0.01" placeholder="Enter target amount" required>
-          <button type="submit">Add New Goal</button>
-        </form>
-        {% if added_goal_success %}
-          <p class="add-goal-success">Added goal successfully</p>
-        {% endif %}
+        <!-- Hidden checkbox for toggling add goal form -->
+        <input type="checkbox" id="toggle-add-goal">
+        <label for="toggle-add-goal" class="toggle-label">Add New Goal</label>
+        <div class="toggle-form">
+          <form action="/add-goal" method="POST">
+            <input type="text" name="goal_name" placeholder="Enter goal name" required>
+            <input type="number" name="target" step="0.01" placeholder="Enter target amount" required>
+            <button type="submit">Submit New Goal</button>
+          </form>
+          {% if added_goal_success %}
+            <p class="add-goal-success">Added goal successfully</p>
+          {% endif %}
+        </div>
       </div>
 
       <div class="add-saving-expense-container" style="margin-top: 30px;">
         <h3>Add Saving Amount</h3>
-        <form action="/add-saving-expense" method="POST">
-          <input type="number" name="amount" step="0.01" placeholder="Amount" required>
-          <input type="date" name="date" required>
-          <input type="text" name="description" placeholder="Description (optional)">
-          <select name="goal_name" required>
-            <option value="" disabled selected>Select Goal</option>
-            {% for goal in goals %}
-              <option value="{{ goal[1] }}">{{ goal[1] }}</option>
-            {% endfor %}
-          </select>
-          <button type="submit">Add Saving Amount</button>
-        </form>
-        {% if added_saving_success %}
-          <p class="add-saving-success">Added saving amount successfully</p>
-        {% endif %}
+        <!-- Hidden checkbox for toggling add saving amount form -->
+        <input type="checkbox" id="toggle-add-saving">
+        <label for="toggle-add-saving" class="toggle-label">Add Saving Amount</label>
+        <div class="toggle-form">
+          <form action="/add-saving-expense" method="POST">
+            <input type="number" name="amount" step="0.01" placeholder="Amount" required>
+            <input type="date" name="date" required>
+            <input type="text" name="description" placeholder="Description (optional)">
+            <button type="submit">Submit Saving Amount</button>
+          </form>
+          {% if added_saving_success %}
+            <p class="add-saving-success">Added saving amount successfully</p>
+          {% endif %}
+        </div>
       </div>
     </main>
   </div>
