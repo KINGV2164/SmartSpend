@@ -20,23 +20,36 @@
     </nav>
     </header>
 
-  <main>
+    <main>
     <div class="dashboard">
       <section class="card">
         <h2>This Week</h2>
         <p>${{ total_week }}</p>
+        <ul class="category-summary">
+          {% for category, amount in week_category_summary %}
+          <li>✔ {{ category }}, ${{ "%.2f"|format(amount) }}</li>
+          {% endfor %}
+        </ul>
       </section>
 
       <section class="card">
         <h2>This Month</h2>
         <p>${{ total_month }}</p>
+        <ul class="category-summary">
+          {% for category, amount in month_category_summary %}
+          <li>✔ {{ category }}, ${{ "%.2f"|format(amount) }}</li>
+          {% endfor %}
+        </ul>
       </section>
 
       <section class="card">
         <h2>Savings</h2>
         <p>${{ total_saved }}</p>
-      </section>
-    </div>
+        {% if active_goal_name and active_goal_target %}
+        <ul class="category-summary">
+          <li>✔ Goal: {{ active_goal_name }}, ${{ "%.2f"|format(active_goal_target) }}</li>
+        </ul>
+        {% endif %}
 
     {% if yearly %}
     <section class="update-bar income-summary">

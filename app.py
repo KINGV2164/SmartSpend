@@ -143,9 +143,27 @@ def home():
     c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving"')
     total_saved = c.fetchone()[0] or 0
 
+    # Fetch category summaries for the last 7 days (week)
+    c.execute('SELECT category, SUM(amount) FROM Expenses WHERE date >= date("now", "-7 day") AND category != "saving" GROUP BY category')
+    week_category_summary = c.fetchall()
+
+    # Fetch category summaries for the current month
+    c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = strftime("%Y-%m", "now") AND category != "saving" GROUP BY category')
+    month_category_summary = c.fetchall()
+
+    # Fetch active saving goal
+    c.execute('SELECT name, target_amount FROM Goals WHERE is_active = 1 LIMIT 1')
+    active_goal = c.fetchone()
+    active_goal_name = active_goal[0] if active_goal else None
+    active_goal_target = active_goal[1] if active_goal else None
+
     conn.close()
     return render_template('home.html', yearly=yearly, monthly=monthly, weekly=weekly,
-                           total_week=total_week, total_month=total_month, total_saved=total_saved)
+                           total_week=total_week, total_month=total_month, total_saved=total_saved,
+                           week_category_summary=week_category_summary,
+                           month_category_summary=month_category_summary,
+                           active_goal_name=active_goal_name,
+                           active_goal_target=active_goal_target)
 
 @app.route('/set-income', methods=['POST'])
 def set_income():
@@ -484,53 +502,64 @@ def export_report():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
 
-    # Get all distinct months
+    # Get all distinct months and weeks
     c.execute('SELECT DISTINCT strftime("%Y-%m", date) FROM Expenses ORDER BY date DESC')
     month_keys = [row[0] for row in c.fetchall()]
-    periods = [month_name[int(m.split("-")[1])] + " " + m.split("-")[0] for m in month_keys]
+    c.execute('SELECT DISTINCT strftime("%Y-%W", date) FROM Expenses ORDER BY date DESC')
+    week_keys = [row[0] for row in c.fetchall()]
+
+    # Prepare periods for month and week
+    month_periods = [month_name[int(m.split("-")[1])] + " " + m.split("-")[0] for m in month_keys]  # e.g., July 2025
+    week_periods = [f"Week {int(w.split('-')[1])} {w.split('-')[0]}" for w in week_keys]  # e.g., Week 29 2025
 
     # Default period (first available)
-    if not selected_period_label and month_keys:
-        selected_period_label = month_name[int(month_keys[0].split("-")[1])] + " " + month_keys[0].split("-")[0]
+    if not selected_period_label:
+        if view_mode == 'monthly' and month_keys:
+            selected_period_label = month_periods[0]
+        elif view_mode == 'weekly' and week_keys:
+            selected_period_label = week_periods[0]
 
-    # Match the label to YYYY-MM for querying
-    if selected_period_label in periods:
-        idx = periods.index(selected_period_label)
-        query_period = month_keys[idx]
-    else:
-        normalized_periods = [p.lower().strip() for p in periods]
-        normalized_selected = selected_period_label.lower().strip() if selected_period_label else ""
-        if normalized_selected in normalized_periods:
-            idx = normalized_periods.index(normalized_selected)
+    # Match the label to query period
+    if view_mode == 'monthly':
+        periods = month_periods
+        if selected_period_label in periods:
+            idx = periods.index(selected_period_label)
             query_period = month_keys[idx]
         else:
-            query_period = datetime.now().strftime("%Y-%m")
-            selected_period_label = month_name[int(query_period.split("-")[1])] + " " + query_period.split("-")[0]
+            query_period = datetime.now().strftime('%Y-%m')
+            selected_period_label = month_name[int(query_period.split('-')[1])] + " " + query_period.split('-')[0]
+    else:
+        periods = week_periods
+        if selected_period_label in periods:
+            idx = periods.index(selected_period_label)
+            query_period = week_keys[idx]
+        else:
+            query_period = datetime.now().strftime('%Y-%W')
+            selected_period_label = f"Week {int(query_period.split('-')[1])} {query_period.split('-')[0]}"
 
     # Fetch expenses and summary data
     try:
-        if view_mode == "monthly":
+        if view_mode == 'monthly':
             c.execute('SELECT date, amount, category FROM Expenses WHERE strftime("%Y-%m", date) = ? ORDER BY date DESC', (query_period,))
         else:
-            week_number = datetime.strptime(query_period + "-01", "%Y-%m-%d").isocalendar()[1]
-            c.execute('SELECT date, amount, category FROM Expenses WHERE strftime("%W", date) = ? ORDER BY date DESC', (str(week_number).zfill(2),))
+            c.execute('SELECT date, amount, category FROM Expenses WHERE strftime("%Y-%W", date) = ? ORDER BY date DESC', (query_period,))
         expenses = c.fetchall()
 
-        if view_mode == "monthly":
+        if view_mode == 'monthly':
             c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ? GROUP BY category', (query_period,))
         else:
-            c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%W", date) = ? GROUP BY category', (str(week_number).zfill(2),))
+            c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ? GROUP BY category', (query_period,))
         summary_data = c.fetchall()
 
-        if view_mode == "monthly":
+        if view_mode == 'monthly':
             c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ?', (query_period,))
             total_spent = c.fetchone()[0] or 0
             c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%m", date) = ?', (query_period,))
             total_saved = c.fetchone()[0] or 0
         else:
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%W", date) = ?', (str(week_number).zfill(2),))
+            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ?', (query_period,))
             total_spent = c.fetchone()[0] or 0
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%W", date) = ?', (str(week_number).zfill(2),))
+            c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%W", date) = ?', (query_period,))
             total_saved = c.fetchone()[0] or 0
 
         c.execute('SELECT target_amount FROM Goals WHERE is_active = 1')
