@@ -55,7 +55,12 @@
       <div class="goals-container">
         {% for goal in goals %}
           <div class="goal-card">
-            <h3>{{ goal[1] }}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3>{{ goal[1] }}</h3>
+              <form action="/delete-goal/{{ goal[0] }}" method="POST" style="margin: 0;">
+                <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;" onclick="return confirm('Are you sure you want to delete this goal?')">×</button>
+              </form>
+            </div>
             <label>Target Amount:</label>
             <p>${{ "%.2f"|format(goal[2]) }}</p>
             <label>Progress:</label>

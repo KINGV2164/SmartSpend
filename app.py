@@ -442,6 +442,16 @@ def update_goal(goal_id):
     conn.close()
     return redirect('/saving')
 
+@app.route('/delete-goal/<int:goal_id>', methods=['POST'])
+def delete_goal(goal_id):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute('DELETE FROM Goals WHERE id = ?', (goal_id,))
+    conn.commit()
+    conn.close()
+    flash("Goal deleted successfully!")
+    return redirect('/saving')
+
 @app.route('/update-income', methods=['POST'])
 def update_income():
     income = float(request.form['income'])
