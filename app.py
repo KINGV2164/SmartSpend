@@ -295,12 +295,12 @@ def summary():
 
         # ---------------- Totals ------------------
         if view_mode == 'monthly':
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ?', (query_period,))
+            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ? AND category != "saving"', (query_period,))
             total_spent = c.fetchone()[0] or 0
             c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%m", date) = ?', (query_period,))
             total_saved = c.fetchone()[0] or 0
         else:
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ?', (query_period,))
+            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ? AND category != "saving"', (query_period,))
             total_spent = c.fetchone()[0] or 0
             c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%W", date) = ?', (query_period,))
             total_saved = c.fetchone()[0] or 0
@@ -491,9 +491,49 @@ def edit_expense(expense_id):
     else:
         c.execute('SELECT * FROM Expenses WHERE id=?', (expense_id,))
         expense = c.fetchone()
+        
+        # Get the same categories as add page
+        categories = [
+            'Groceries', 'Transport', 'Entertainment', 'Utilities', 'Shopping', 'Health', 'Dining', 'Education',
+            'Travel', 'Personal Care', 'Insurance', 'Taxes', 'Gifts', 'Charity', 'Subscriptions', 'Home Improvement',
+            'Automotive', 'Childcare', 'Pet Care', 'Mortgage', 'Miscellaneous', 'Other', 'saving'
+        ]
+        
+        keywords_map = {
+            "bus,uber,fuel,petrol,train,metro,taxi,bike": "Transport",
+            "grocery,aldi,coles,woolworths,supermarket,market": "Groceries",
+            "movie,cinema,netflix,spotify,concert,theater": "Entertainment",
+            "electricity,water,internet,phone,bill,gas": "Utilities",
+            "clothes,shopping,amazon,ebay,apparel": "Shopping",
+            "doctor,pharmacy,hospital,medicine,clinic": "Health",
+            "restaurant,cafe,coffee,food,dining,meal": "Dining",
+            "school,university,books,education,course": "Education",
+            "flight,hotel,airbnb,travel,tour,vacation": "Travel",
+            "haircut,spa,beauty,personal care": "Personal Care",
+            "insurance,health insurance,car insurance,home insurance": "Insurance",
+            "tax,taxes,income tax": "Taxes",
+            "gift,present,birthday,anniversary": "Gifts",
+            "charity,donation": "Charity",
+            "subscription,netflix,spotify,amazon prime": "Subscriptions",
+            "home improvement,repair,maintenance": "Home Improvement",
+            "car,automotive,auto,repair,fuel": "Automotive",
+            "childcare,baby,kids": "Childcare",
+            "pet,vet,pet care": "Pet Care",
+            "mortgage,home loan,property loan": "Mortgage",
+            "misc,other,miscellaneous": "Miscellaneous"
+        }
+        
         conn.close()
-        categories = ['Groceries','Transport','Entertainment','Utilities','Shopping','Other','saving']
-        return render_template('edit_expense.html', expense=expense, categories=categories)
+        
+        # Use add.html template but with edit data
+        return render_template(
+            'add.html',
+            categories=categories,
+            keywords_to_categories=keywords_map,
+            today=expense[2],  # Use existing expense date
+            edit_mode=True,
+            expense=expense
+        )
 
 @app.route('/delete-expense/<int:expense_id>')
 def delete_expense(expense_id):

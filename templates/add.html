@@ -18,32 +18,48 @@
   <div class="container">
     <main class="add-expense">
       <h2>Add Expense</h2>
-      <form action="/save-expense" method="POST" class="expense-form" autocomplete="off">
-        <label for="amount" class="form-label">Amount:</label>
-        <input type="number" id="amount" name="amount" step="0.01" placeholder="$XXXXXX" required class="form-input">
+  {% if edit_mode %}
+  <form action="/edit-expense/{{ expense[0] }}" method="POST" class="expense-form" autocomplete="off">
+  {% else %}
+  <form action="/save-expense" method="POST" class="expense-form" autocomplete="off">
+  {% endif %}
+    <label for="amount" class="form-label">Amount:</label>
+    <input type="number" id="amount" name="amount" step="0.01" placeholder="$XXXXXX" required class="form-input" 
+           value="{% if edit_mode %}{{ expense[1] }}{% else %}{{ today }}{% endif %}">
 
-        <label for="date" class="form-label">Date:</label>
-        <input type="date" id="date" name="date" required class="form-input" value="{{ today }}">
+    <label for="date" class="form-label">Date:</label>
+    <input type="date" id="date" name="date" required class="form-input" 
+           value="{% if edit_mode %}{{ expense[2] }}{% else %}{{ today }}{% endif %}">
 
-        <label for="description" class="form-label">Description:</label>
-        <input type="text" id="description" name="description" placeholder="...." class="form-input" autocomplete="off">
+    <label for="description" class="form-label">Description:</label>
+    <input type="text" id="description" name="description" placeholder="...." class="form-input" autocomplete="off"
+           value="{% if edit_mode %}{{ expense[3] or '' }}{% endif %}">
 
-        <label for="category" class="form-label">Category:</label>
-        <div style="position:relative;">
-          <select id="category" name="category" required class="form-input">
-            <option value="">......</option>
-            {% for cat in categories %}
-            <option value="{{ cat }}">{{ cat }}</option>
-            {% endfor %}
-          </select>
-          <div id="suggestion-list" class="suggestion-list" style="display:none;"></div>
-        </div>
+    <label for="category" class="form-label">Category:</label>
+    <div style="position:relative;">
+      <select id="category" name="category" required class="form-input">
+        <option value="">......</option>
+        {% for cat in categories %}
+        <option value="{{ cat }}" {% if edit_mode and cat == expense[4] %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+      <div id="suggestion-list" class="suggestion-list" style="display:none;"></div>
+    </div>
 
-        <button type="submit" class="save-btn">Save Expense</button>
-        <div id="success-message" class="success-message" style="display:none;">
-          Added expense successfully
-        </div>
-      </form>
+    {% if edit_mode %}
+    <button type="submit" class="save-btn">Update Expense</button>
+    {% else %}
+    <button type="submit" class="save-btn">Save Expense</button>
+    {% endif %}
+    
+    {% if edit_mode %}
+    <a href="/summary" class="save-btn" style="background-color: #6c757d; margin-top: 1rem;">Cancel</a>
+    {% else %}
+    <div id="success-message" class="success-message" style="display:none;">
+      Added expense successfully
+    </div>
+    {% endif %}
+  </form>
     </main>
   </div>
   <script id="keywords-data" type="application/json">
