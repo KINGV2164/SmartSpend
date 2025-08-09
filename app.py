@@ -365,6 +365,10 @@ def saving():
     c.execute('SELECT * FROM Goals')
     goals_raw = c.fetchall()
 
+    # Calculate total amount saved
+    c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving"')
+    total_saved = c.fetchone()[0] or 0.0
+
     goals = []
     for goal in goals_raw:
         goal_id = goal[0]
@@ -385,7 +389,7 @@ def saving():
         goals.append(new_goal)
 
     conn.close()
-    return render_template('saving.html', goals=goals)
+    return render_template('saving.html', goals=goals, total_saved=total_saved)
 
 @app.route('/add-goal', methods=['POST'])
 def add_goal():

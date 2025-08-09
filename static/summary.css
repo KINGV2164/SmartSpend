@@ -7,7 +7,6 @@ body, html {
   height: 100%;
   font-family: 'Work Sans', sans-serif;
   background-color: #f3e6df;
-  overflow-y: scroll;
 }
 
 /* Navbar styles */
@@ -119,8 +118,8 @@ body, html {
 
 /* Table styles */
 .table-container {
-  max-height: 300px;
-  overflow-y: auto;
+  /* max-height: 300px; */
+  overflow-y: visible;
   border-radius: 12px;
   background-color: #D5C5BC;
   padding: 10px;
@@ -130,7 +129,7 @@ body, html {
 .table-container table {
   width: 100%;
   border-collapse: collapse;
-  background-color: #a88c8c;
+  background-color: #AA998F;
   border-radius: 12px;
   overflow: hidden;
 }
@@ -148,11 +147,11 @@ body, html {
 }
 
 .table-container tbody tr {
-  background-color: #a88c8c;
+  background-color: #AA998F;
 }
 
 .table-container tbody tr:nth-child(even) {
-  background-color: #9a7f7f;
+  background-color: #AA998F;
 }
 
 .table-container td a {
@@ -220,13 +219,13 @@ body, html {
 .progress-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .progress-label {
   font-weight: 700;
   color: #6e5151;
-  min-width: 40px;
+  min-width: 50px;
 }
 
 .progress-bar {
@@ -244,9 +243,9 @@ body, html {
 }
 
 .progress-text {
-  font-size: 1em;
+  font-size: 1.2em;
   color: #6e5151;
-  margin-top: 8px;
+  margin-top: 30px;
 }
 
 /* Footer styles */
@@ -256,7 +255,7 @@ body, html {
   align-items: center;
   margin-top: 30px;
   font-weight: 700;
-  color: #5a3e3e;
+  color: #000000;
   font-size: 1.1em;
   flex-wrap: wrap;
   gap: 20px;
@@ -275,7 +274,7 @@ body, html {
 }
 
 .footer button:hover {
-  background-color: #a83232;
+  background-color: #AA998F;
 }
 
 .footer select {

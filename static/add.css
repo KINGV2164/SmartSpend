@@ -27,7 +27,7 @@ body, html {
   justify-content: flex-start;
   padding: 0;
   height: 60px;
-  border-bottom: 4px solid #7d4c4c;
+  border-bottom: 4px solid #7D4F50;
   border-radius: 0 0 10px 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
@@ -44,7 +44,7 @@ body, html {
 }
 
 .navbar nav a {
-  color: #7d4c4c;
+  color: #7D4F50;
   text-decoration: none;
   font-size: 18px;
   font-family: 'Baloo Bhai', cursive;
@@ -63,8 +63,8 @@ body, html {
 .navbar nav a.active,
 .navbar nav a:focus {
   background: #fff;
-  color: #8b5c5c;
-  border-bottom: 3px solid #8b5c5c;
+  color: #7D4F50;
+  border-bottom: 3px solid #7D4F50;
   top: 4px;
 }
 
@@ -109,7 +109,7 @@ body, html {
   padding: 18px 24px;
   border: none;
   border-radius: 20px;
-  background: #c99b97;
+  background: #CC8B86;
   color: #3d2323;
   font-size: 1.25em;
   font-family: 'Work Sans', sans-serif;
@@ -130,7 +130,7 @@ body, html {
   margin: 0 auto;
   margin-top: 18px;
   padding: 18px 48px;
-  background: #7d4c4c;
+  background: #7D4F50;
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -176,7 +176,7 @@ body, html {
   padding: 14px 24px;
   cursor: pointer;
   font-size: 1.1em;
-  color: #7d4c4c;
+  color: #7D4F50;
   font-family: 'Work Sans', sans-serif;
   background: #f5e9df;
   transition: background 0.15s;
