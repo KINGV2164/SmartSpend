@@ -23,18 +23,22 @@
   {% else %}
   <form action="/save-expense" method="POST" class="expense-form" autocomplete="off">
   {% endif %}
+    <!-- Amount input field -->
     <label for="amount" class="form-label">Amount:</label>
     <input type="number" id="amount" name="amount" step="0.01" placeholder="$XXXXXX" required class="form-input" 
            value="{% if edit_mode %}{{ expense[1] }}{% else %}{{ today }}{% endif %}">
 
+    <!-- Date input field -->
     <label for="date" class="form-label">Date:</label>
     <input type="date" id="date" name="date" required class="form-input" 
            value="{% if edit_mode %}{{ expense[2] }}{% else %}{{ today }}{% endif %}">
 
+    <!-- Description input field -->
     <label for="description" class="form-label">Description:</label>
     <input type="text" id="description" name="description" placeholder="...." class="form-input" autocomplete="off"
            value="{% if edit_mode %}{{ expense[3] or '' }}{% endif %}">
 
+    <!-- Category dropdown with suggestion list -->
     <label for="category" class="form-label">Category:</label>
     <div style="position:relative;">
       <select id="category" name="category" required class="form-input">
