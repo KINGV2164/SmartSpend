@@ -19,7 +19,7 @@
     </nav>
   </header>
 
-  <main class="dashboard">
+  <main class="dashboard"> <!-- Main content area for settings -->
     <section class="card">
       <h2>Update Email and Password</h2>
       {% with messages = get_flashed_messages() %}
@@ -27,7 +27,7 @@
           <div class="flash-message">{{ messages[0] }}</div>
         {% endif %}
       {% endwith %}
-      <form action="/update-settings" method="POST">
+      <form action="/update-settings" method="POST"> <!-- Form to update email and password -->
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" value="{{ current_email }}" required>
 

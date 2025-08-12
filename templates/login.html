@@ -6,25 +6,25 @@
     <title>Login – SmartSpend</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
 </head>
-<body>
+<body> <!-- Main container for the login page -->
     <div class="container">
         <div class="left-side">
             <img src="{{ url_for('static', filename='desk-mockup.jpg') }}" alt="Background">
         </div>
 
         <div class="right-side">
-            <div class="login-box">
+            <div class="login-box"> <!-- Login box -->
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="SmartSpend Logo" class="logo-img">
 
                 <h1>{{ 'Set Up SmartSpend' if setup else 'SmartSpend Login' }}</h1>
 
                 {% with messages = get_flashed_messages() %}
                   {% if messages %}
-                    <div class="error-msg">{{ messages[0] }}</div>
+                    <div class="error-msg">{{ messages[0] }}</div> 
                   {% endif %}
                 {% endwith %}
 
-                <form action="/login" method="POST">
+                <form action="/login" method="POST"> <!-- Form for login or setup -->
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" required>
 
@@ -43,7 +43,7 @@
     </div>
 
     <script>
-        const showPass = document.getElementById('showPassword');
+        const showPass = document.getElementById('showPassword'); // Checkbox to toggle password visibility
         const passwordField = document.getElementById('password');
 
         showPass.addEventListener('change', function () {

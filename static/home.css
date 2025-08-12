@@ -1,5 +1,6 @@
+/* static/home.css */
 @import url('https://fonts.googleapis.com/css2?family=Baloo+Bhai&family=Work+Sans:wght@400;600&display=swap');
-
+/* Home Page CSS - Styles for the SmartSpend home page */
 body, html {
     margin: 0;
     padding: 0;
@@ -7,9 +8,7 @@ body, html {
     font-family: 'Work Sans', sans-serif;
     background-color: #F9EAE1;
 }
-
-/* ...existing code... */
-
+/* Base Container */
 .navbar {
   background-color: #7D4F50;
   display: flex;
@@ -21,7 +20,7 @@ body, html {
   border-radius: 0 0 10px 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
-
+/* Navbar Logo */
 .nav-logo {
   height: 70px;
   margin-left: 24px;
@@ -57,7 +56,7 @@ body, html {
   border-bottom: 3px solid #7D4F50;
   top: 4px;
 }
-
+/* Main Content */
 .main-content {
     padding: 32px 40px 120px 40px;
 }
@@ -68,7 +67,7 @@ h1 {
     margin-bottom: 24px;
     color: #111;
 }
-
+/* Dashboard Section */
 .dashboard {
     display: flex;
     gap: 32px;
@@ -81,7 +80,7 @@ h1 {
     margin-left: auto;
     margin-right: auto;
 }
-
+/* Dashboard Cards */
 .dashboard .card {
     background-color: #b7a89a;
     border-radius: 16px;

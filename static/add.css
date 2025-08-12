@@ -1,8 +1,6 @@
 /* static/add.css */
 @import url('https://fonts.googleapis.com/css2?family=Baloo+Bhai&family=Work+Sans:wght@400;600&display=swap');
-
-/* ...existing code... */
-
+/* Add.css - Styles for the Add Expense page of the SmartSpend app */
 body, html {
   margin: 0;
   padding: 0;
@@ -10,7 +8,7 @@ body, html {
   font-family: 'Work Sans', sans-serif;
   background-color: #fbeee6;
 }
-
+/* Base Container */
 .container {
   display: flex;
   height: 100vh;
@@ -19,7 +17,7 @@ body, html {
     justify-content: center;   
 }
 
-
+/* Navbar */
 .navbar {
   background-color: #8b5c5c;
   display: flex;
@@ -42,7 +40,7 @@ body, html {
   display: flex;
   gap: 18px;
 }
-
+/* Navbar Links */
 .navbar nav a {
   color: #7D4F50;
   text-decoration: none;
@@ -67,7 +65,7 @@ body, html {
   border-bottom: 3px solid #7D4F50;
   top: 4px;
 }
-
+/* Main Content */
 .add-expense {
   display: flex;
   flex-direction: column;
@@ -76,7 +74,7 @@ body, html {
   min-height: calc(100vh - 60px);
   background: none;
 }
-
+/* Add Expense Form */
 .add-expense h2 {
   color: #800000;
   margin-bottom: 24px;
@@ -93,7 +91,7 @@ body, html {
   width: 200%;
   max-width: 700px;
 }
-
+/* Form Labels */
 .form-label {
   font-weight: 700;
   color: #7d4c4c;
@@ -125,7 +123,7 @@ body, html {
 .expense-form select:focus {
   box-shadow: 0 0 0 2px #8b5c5c33;
 }
-
+/* Submit Button */
 .save-btn {
   margin: 0 auto;
   margin-top: 18px;
@@ -171,7 +169,7 @@ body, html {
   border: 1px solid #c99b97;
   border-top: none;
 }
-
+/* Suggestion Items */
 .suggestion-item {
   padding: 14px 24px;
   cursor: pointer;
@@ -184,7 +182,7 @@ body, html {
 
 .suggestion-item:hover,
 .suggestion-item.active {
-  background: #c99b97;
+  background: #AA998F;
   color: #fff;
 }
 
