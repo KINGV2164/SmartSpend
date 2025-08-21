@@ -18,6 +18,16 @@
   <div class="container">
     <main class="add-expense">
       <h2>Add Expense</h2>
+      
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for message in messages %}
+              <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
   {% if edit_mode %}
   <form action="/edit-expense/{{ expense[0] }}" method="POST" class="expense-form" autocomplete="off">
   {% else %}

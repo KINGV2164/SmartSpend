@@ -18,19 +18,19 @@
   </header>
   
   <div class="container">
-    <main class="summary-page">
+    <main class="summary-page"> <!-- Main content area for summary -->
         <div class="controls">
-          <button id="weekly" class="{{ 'active' if view_mode == 'weekly' else '' }}" onclick="window.location.href='?view=weekly'">Weekly View</button>
-          <button id="monthly" class="{{ 'active' if view_mode == 'monthly' else '' }}" onclick="window.location.href='?view=monthly'">Monthly View</button>
-          <select id="period" onchange="window.location.href='?view={{ view_mode }}&period='+this.value">
+          <button id="weekly" class="{{ 'active' if view_mode == 'weekly' else '' }}" onclick="window.location.href='?view=weekly'">Weekly View</button> <!-- Button to switch to weekly view -->
+          <button id="monthly" class="{{ 'active' if view_mode == 'monthly' else '' }}" onclick="window.location.href='?view=monthly'">Monthly View</button> <!-- Button to switch to monthly view -->
+          <select id="period" onchange="window.location.href='?view={{ view_mode }}&period='+this.value"> <!-- Dropdown to select time period -->
             {% for period in periods %}
-              <option value="{{ period }}" {% if period == selected_period %}selected{% endif %}>{{ period }}</option>
+              <option value="{{ period }}" {% if period == selected_period %}selected{% endif %}>{{ period }}</option> <!-- Dropdown for selecting time period -->
             {% endfor %}
           </select>
         </div>
 
         <h2>View Expense table</h2>
-        <div class="table-container">
+        <div class="table-container"> <!-- Container for the expense table -->
           <table>
             <thead>
               <tr>
@@ -45,11 +45,11 @@
                 {% for exp in expenses %}
                   <tr>
                     <td>{{ exp[2] }}</td>
-                    <td>${{ "%.2f"|format(exp[1]) }}</td>
+                    <td>${{ "%.2f"|format(exp[1]) }}</td> <!-- Format the expense amount to two decimal places -->
                     <td>{{ exp[4] }}</td>
                     <td>
-                      <a href="/edit-expense/{{ exp[0] }}" title="Edit">&#9998;</a>
-                      <a href="/delete-expense/{{ exp[0] }}" title="Delete" onclick="return confirm('Delete this expense?')">&#128465;</a>
+                      <a href="/edit-expense/{{ exp[0] }}" title="Edit">&#9998;</a> <!-- Link to edit the expense -->
+                      <a href="/delete-expense/{{ exp[0] }}" title="Delete" onclick="return confirm('Delete this expense?')">&#128465;</a> <!-- Link to delete the expense -->
                     </td>
                   </tr>
                 {% endfor %}
@@ -60,7 +60,7 @@
           </table>
         </div>
 
-        <div class="summary-bottom">
+        <div class="summary-bottom"> <!-- Bottom section of the summary page -->
           <div class="category-summary">
             <table>
               <thead>
@@ -79,28 +79,23 @@
               </tbody>
             </table>
           </div>
-          <div class="saving-progress">
+          <div class="saving-progress"> 
             <h3>Saving progress</h3>
-            <div class="progress-label">{{ saving_percent }}%</div>
+            <div class="progress-label">{{ saving_percent }}%</div> <!-- Display saving progress percentage -->
             <div class="progress-bar">
-              <div class="fill" style="width: {{ saving_percent }}%;"></div>
+              <div class="fill" style="width: {{ saving_percent }}%;"></div> <!-- Progress bar showing saving progress -->
             </div>
-            <div class="progress-text">{{ 100 - saving_percent }}% left to reach saving goal</div>
+            <div class="progress-text">{{ 100 - saving_percent }}% left to reach saving goal</div> 
           </div>
         </div>
 
-        <div class="footer">
+        <div class="footer"> <!-- Footer section with total spent and saved -->
           <div>
             <div>Total spent in this time period: ${{ "%.2f"|format(total_spent) }}</div>
             <div>Total saved in this time period: ${{ "%.2f"|format(total_saved) }}</div>
           </div>
           <div>
-            <button id="export" onclick="window.location.href='/export-report?view={{ view_mode }}&period={{ selected_period }}'">Export Report</button>
-            <select id="footer-period" onchange="window.location.href='?view={{ view_mode }}&period='+this.value">
-              {% for period in periods %}
-                <option value="{{ period }}" {% if period == selected_period %}selected{% endif %}>{{ period }}</option>
-              {% endfor %}
-            </select>
+            <button id="export" onclick="window.location.href='/export-report?view={{ view_mode }}&period={{ selected_period }}'">Export Report</button> <!-- Button to export the report -->
           </div>
         </div>
       </main>

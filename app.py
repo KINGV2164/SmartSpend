@@ -321,12 +321,34 @@ def add_expense():
 
 @app.route('/save-expense', methods=['POST'])
 def save_expense():
-    amount = float(request.form['amount'])
+    try:
+        amount_str = request.form['amount'].strip()
+        if not amount_str:
+            flash("Please enter an expense amount")
+            return redirect('/add')
+        
+        amount = float(amount_str)
+        
+        if amount < 0:
+            flash(f"Expense amount cannot be negative: ${abs(amount):.2f}")
+            return redirect('/add')
+        elif amount == 0:
+            flash("Expense amount must be greater than $0.00")
+            return redirect('/add')
+        elif amount > 1000000:
+            flash("Expense amount is too large (maximum: $1,000,000)")
+            return redirect('/add')
+            
+    except ValueError:
+        flash("Please enter a valid number for the expense amount")
+        return redirect('/add')
+    
     date_val = request.form['date']
     description = request.form['description']
     category = request.form['category']
     expense = Expense(amount, date_val, description, category)
     expense.save(db_manager)
+    flash(f"Expense of ${amount:.2f} added successfully!")
     return redirect('/home')
 
 @app.route('/summary')
@@ -483,7 +505,28 @@ def set_active(goal_id):
 
 @app.route('/add-saving-expense', methods=['POST'])
 def add_saving_expense():
-    amount = float(request.form['amount'])
+    try:
+        amount_str = request.form['amount'].strip()
+        if not amount_str:
+            flash("Please enter a saving amount")
+            return redirect('/saving')
+        
+        amount = float(amount_str)
+        
+        if amount < 0:
+            flash(f"Saving amount cannot be negative: ${abs(amount):.2f}")
+            return redirect('/saving')
+        elif amount == 0:
+            flash("Saving amount must be greater than $0.00")
+            return redirect('/saving')
+        elif amount > 1000000:
+            flash("Saving amount is too large (maximum: $1,000,000)")
+            return redirect('/saving')
+            
+    except ValueError:
+        flash("Please enter a valid number for the saving amount")
+        return redirect('/saving')
+    
     date_val = request.form['date']
     description = request.form.get('description', '')
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -498,6 +541,7 @@ def add_saving_expense():
               (amount, date_val, goal_name if description == '' else description, 'saving', timestamp))
     conn.commit()
     conn.close()
+    flash(f"Saving of ${amount:.2f} added successfully!")
     return redirect('/saving')
 
 @app.route('/update-goal/<int:goal_id>', methods=['POST'])
@@ -526,12 +570,34 @@ def edit_expense(expense_id):
     conn = db_manager.connect()
     c = conn.cursor()
     if request.method == 'POST':
-        amount = float(request.form['amount'])
+        try:
+            amount_str = request.form['amount'].strip()
+            if not amount_str:
+                flash("Please enter an expense amount")
+                return redirect(f'/edit-expense/{expense_id}')
+            
+            amount = float(amount_str)
+            
+            if amount < 0:
+                flash(f"Expense amount cannot be negative: ${abs(amount):.2f}")
+                return redirect(f'/edit-expense/{expense_id}')
+            elif amount == 0:
+                flash("Expense amount must be greater than $0.00")
+                return redirect(f'/edit-expense/{expense_id}')
+            elif amount > 1000000:
+                flash("Expense amount is too large (maximum: $1,000,000)")
+                return redirect(f'/edit-expense/{expense_id}')
+                
+        except ValueError:
+            flash("Please enter a valid number for the expense amount")
+            return redirect(f'/edit-expense/{expense_id}')
+        
         date_val = request.form['date']
         description = request.form['description']
         category = request.form['category']
         expense = Expense(amount, date_val, description, category)
         expense.update(db_manager, expense_id)
+        flash(f"Expense updated successfully! New amount: ${amount:.2f}")
         return redirect('/summary')
     else:
         c.execute('SELECT * FROM Expenses WHERE id=?', (expense_id,))

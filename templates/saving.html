@@ -48,9 +48,18 @@
         <a href="/saving" class="active">Saving</a> 
       </nav>
     </header>
-<
     <main>
       <h2>Your Saving Goals</h2>
+      
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for message in messages %}
+              <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
 
       <div class="goals-container">
         {% for goal in goals %}
