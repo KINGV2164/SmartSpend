@@ -1,21 +1,38 @@
 from flask import Flask, render_template, request, redirect, session, flash
 import sqlite3
+import threading
 from datetime import datetime
 import os
 from calendar import month_name
+from contextlib import contextmanager
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 DB_NAME = 'smartspend.db'
 
-class DatabaseManager: # Manages database connections and operations. Uses SQLite as the data source for persistence.   
+class DatabaseManager: # Manages database connections and operations. Uses SQLite as the data source with connection pooling.   
+    _local = threading.local()
+    
     def __init__(self, db_name=DB_NAME):
         self.db_name = db_name
+        self._create_tables()
 
+    @contextmanager
     def connect(self):
-        return sqlite3.connect(self.db_name)
+        """Context manager for database connections with connection pooling"""
+        if not hasattr(self._local, 'connection'):
+            self._local.connection = sqlite3.connect(self.db_name, check_same_thread=False)
+            self._local.connection.row_factory = sqlite3.Row
+        try:
+            yield self._local.connection
+        except Exception:
+            self._local.connection.rollback()
+            raise
+        else:
+            self._local.connection.commit()
 
-    def init_db(self):
+    def _create_tables(self):
+        """Create database tables if they don't exist"""
         with self.connect() as conn:
             c = conn.cursor()
             c.execute('''CREATE TABLE IF NOT EXISTS Users (
@@ -45,6 +62,10 @@ class DatabaseManager: # Manages database connections and operations. Uses SQLit
                             created_at TEXT,
                             updated_at TEXT
                         )''')
+            # Create indexes for frequently queried columns
+            c.execute('CREATE INDEX IF NOT EXISTS idx_expenses_date ON Expenses(date)')
+            c.execute('CREATE INDEX IF NOT EXISTS idx_expenses_category ON Expenses(category)')
+            c.execute('CREATE INDEX IF NOT EXISTS idx_goals_active ON Goals(is_active)')
 
 class User: # Represents a user of the SmartSpend app. Encapsulates user-related data and operations.
     def __init__(self, email, password):
@@ -53,28 +74,25 @@ class User: # Represents a user of the SmartSpend app. Encapsulates user-related
 
     @staticmethod
     def get_user(db_manager):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute("SELECT * FROM Users")
-        user_data = c.fetchone()
-        conn.close()
-        if user_data:
-            return User(user_data[1], user_data[2])
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute("SELECT * FROM Users")
+            user_data = c.fetchone()
+            if user_data:
+                return User(user_data[1], user_data[2])
         return None
 
     def save(self, db_manager):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute("INSERT INTO Users (email, password) VALUES (?, ?)", (self.email, self.password))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute("INSERT INTO Users (email, password) VALUES (?, ?)", (self.email, self.password))
+            conn.commit()
 
     def update(self, db_manager, new_email, new_password):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute("UPDATE Users SET email = ?, password = ? WHERE id = 1", (new_email, new_password))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute("UPDATE Users SET email = ?, password = ? WHERE id = 1", (new_email, new_password))
+            conn.commit()
 
 class Income: # Represents income data with yearly, monthly, and weekly amounts.
     def __init__(self, yearly):
@@ -83,26 +101,24 @@ class Income: # Represents income data with yearly, monthly, and weekly amounts.
         self.weekly = round(yearly / 52, 2)
 
     def save(self, db_manager):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('INSERT INTO Income (yearly, monthly, weekly) VALUES (?, ?, ?)',
-                  (self.yearly, self.monthly, self.weekly))
-        conn.commit()
-        conn.close()
-
-    def update(self, db_manager):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('SELECT id FROM Income ORDER BY id DESC LIMIT 1')
-        row = c.fetchone()
-        if row:
-            c.execute('UPDATE Income SET yearly=?, monthly=?, weekly=? WHERE id=?',
-                      (self.yearly, self.monthly, self.weekly, row[0]))
-        else:
+        with db_manager.connect() as conn:
+            c = conn.cursor()
             c.execute('INSERT INTO Income (yearly, monthly, weekly) VALUES (?, ?, ?)',
                       (self.yearly, self.monthly, self.weekly))
-        conn.commit()
-        conn.close()
+            conn.commit()
+
+    def update(self, db_manager):
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('SELECT id FROM Income ORDER BY id DESC LIMIT 1')
+            row = c.fetchone()
+            if row:
+                c.execute('UPDATE Income SET yearly=?, monthly=?, weekly=? WHERE id=?',
+                          (self.yearly, self.monthly, self.weekly, row[0]))
+            else:
+                c.execute('INSERT INTO Income (yearly, monthly, weekly) VALUES (?, ?, ?)',
+                          (self.yearly, self.monthly, self.weekly))
+            conn.commit()
 
 class Expense: # Represents an expense entry.
     def __init__(self, amount, date, description, category, timestamp=None):
@@ -113,28 +129,25 @@ class Expense: # Represents an expense entry.
         self.timestamp = timestamp or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     def save(self, db_manager):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('INSERT INTO Expenses (amount, date, description, category, timestamp) VALUES (?, ?, ?, ?, ?)',
-                  (self.amount, self.date, self.description, self.category, self.timestamp))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('INSERT INTO Expenses (amount, date, description, category, timestamp) VALUES (?, ?, ?, ?, ?)',
+                      (self.amount, self.date, self.description, self.category, self.timestamp))
+            conn.commit()
 
     def update(self, db_manager, expense_id):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('UPDATE Expenses SET amount=?, date=?, description=?, category=? WHERE id=?',
-                  (self.amount, self.date, self.description, self.category, expense_id))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('UPDATE Expenses SET amount=?, date=?, description=?, category=? WHERE id=?',
+                      (self.amount, self.date, self.description, self.category, expense_id))
+            conn.commit()
 
     @staticmethod
     def delete(db_manager, expense_id):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('DELETE FROM Expenses WHERE id=?', (expense_id,))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('DELETE FROM Expenses WHERE id=?', (expense_id,))
+            conn.commit()
 
 class Goal: # Represents a financial goal with a target amount and status.
     def __init__(self, name, target_amount, is_active=False, created_at=None, updated_at=None):
@@ -145,38 +158,34 @@ class Goal: # Represents a financial goal with a target amount and status.
         self.updated_at = updated_at
 
     def save(self, db_manager):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('INSERT INTO Goals (name, target_amount, is_active, created_at) VALUES (?, ?, ?, ?)',
-                  (self.name, self.target_amount, self.is_active, self.created_at))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('INSERT INTO Goals (name, target_amount, is_active, created_at) VALUES (?, ?, ?, ?)',
+                      (self.name, self.target_amount, self.is_active, self.created_at))
+            conn.commit()
 
     def update(self, db_manager, goal_id, new_name, new_target):
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('UPDATE Goals SET name = ?, target_amount = ?, updated_at = ? WHERE id = ?',
-                  (new_name, new_target, now, goal_id))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('UPDATE Goals SET name = ?, target_amount = ?, updated_at = ? WHERE id = ?',
+                      (new_name, new_target, now, goal_id))
+            conn.commit()
 
     @staticmethod
     def delete(db_manager, goal_id):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('DELETE FROM Goals WHERE id = ?', (goal_id,))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('DELETE FROM Goals WHERE id = ?', (goal_id,))
+            conn.commit()
 
     @staticmethod
     def set_active(db_manager, goal_id):
-        conn = db_manager.connect()
-        c = conn.cursor()
-        c.execute('UPDATE Goals SET is_active = 0')
-        c.execute('UPDATE Goals SET is_active = 1 WHERE id = ?', (goal_id,))
-        conn.commit()
-        conn.close()
+        with db_manager.connect() as conn:
+            c = conn.cursor()
+            c.execute('UPDATE Goals SET is_active = 0')
+            c.execute('UPDATE Goals SET is_active = 1 WHERE id = ?', (goal_id,))
+            conn.commit()
 
 db_manager = DatabaseManager()
 
@@ -239,40 +248,69 @@ def update_settings():
 
 @app.route('/home')
 def home():
-    conn = db_manager.connect()
-    c = conn.cursor()
-    c.execute('SELECT yearly FROM Income ORDER BY id DESC LIMIT 1')
-    result = c.fetchone()
-    yearly = result[0] if result else None
-    monthly = round(yearly / 12, 2) if yearly else None
-    weekly = round(yearly / 52, 2) if yearly else None
+    with db_manager.connect() as conn:
+        c = conn.cursor()
+        
+        # Get income data
+        c.execute('SELECT yearly FROM Income ORDER BY id DESC LIMIT 1')
+        result = c.fetchone()
+        yearly = result[0] if result else None
+        monthly = round(yearly / 12, 2) if yearly else None
+        weekly = round(yearly / 52, 2) if yearly else None
 
-    c.execute('SELECT SUM(amount) FROM Expenses WHERE date >= date("now", "-7 day") AND category != "saving"')
-    total_week = c.fetchone()[0] or 0
-    c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = strftime("%Y-%m", "now") AND category != "saving"')
-    total_month = c.fetchone()[0] or 0
+        # Get weekly and monthly expenses in single query using UNION
+        c.execute('''
+            SELECT 'week' as period, SUM(amount) as total 
+            FROM Expenses 
+            WHERE date >= date("now", "-7 day") AND category != "saving"
+            UNION ALL
+            SELECT 'month' as period, SUM(amount) as total 
+            FROM Expenses 
+            WHERE strftime("%Y-%m", date) = strftime("%Y-%m", "now") AND category != "saving"
+        ''')
+        period_totals = c.fetchall()
+        total_week = period_totals[0][1] or 0 if len(period_totals) > 0 else 0
+        total_month = period_totals[1][1] or 0 if len(period_totals) > 1 else 0
 
-    c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving"')
-    total_saved = c.fetchone()[0] or 0
+        # Get total saved
+        c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving"')
+        total_saved = c.fetchone()[0] or 0
 
-    c.execute('SELECT category, SUM(amount) FROM Expenses WHERE date >= date("now", "-7 day") AND category != "saving" GROUP BY category')
-    week_category_summary = c.fetchall()
+        # Get weekly and monthly category summaries in single query
+        c.execute('''
+            SELECT 'week' as period, category, SUM(amount) as total
+            FROM Expenses 
+            WHERE date >= date("now", "-7 day") AND category != "saving"
+            GROUP BY category
+            UNION ALL
+            SELECT 'month' as period, category, SUM(amount) as total
+            FROM Expenses 
+            WHERE strftime("%Y-%m", date) = strftime("%Y-%m", "now") AND category != "saving"
+            GROUP BY category
+        ''')
+        all_category_summaries = c.fetchall()
+        
+        # Separate week and month summaries
+        week_category_summary = [(cat, total) for period, cat, total in all_category_summaries if period == 'week']
+        month_category_summary = [(cat, total) for period, cat, total in all_category_summaries if period == 'month']
 
-    c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = strftime("%Y-%m", "now") AND category != "saving" GROUP BY category')
-    month_category_summary = c.fetchall()
+        # Get active goal
+        c.execute('SELECT name, target_amount FROM Goals WHERE is_active = 1 LIMIT 1')
+        active_goal = c.fetchone()
+        active_goal_name = active_goal[0] if active_goal else None
+        active_goal_target = active_goal[1] if active_goal else None
 
-    c.execute('SELECT name, target_amount FROM Goals WHERE is_active = 1 LIMIT 1')
-    active_goal = c.fetchone()
-    active_goal_name = active_goal[0] if active_goal else None
-    active_goal_target = active_goal[1] if active_goal else None
+        # Fetch all goals
+        c.execute('SELECT name, target_amount FROM Goals')
+        all_goals = c.fetchall()
 
-    conn.close()
     return render_template('home.html', yearly=yearly, monthly=monthly, weekly=weekly,
                            total_week=total_week, total_month=total_month, total_saved=total_saved,
                            week_category_summary=week_category_summary,
                            month_category_summary=month_category_summary,
                            active_goal_name=active_goal_name,
-                           active_goal_target=active_goal_target)
+                           active_goal_target=active_goal_target,
+                           all_goals=all_goals)
 
 @app.route('/set-income', methods=['POST'])
 def set_income():
@@ -356,99 +394,97 @@ def summary():
     view_mode = request.args.get('view', 'monthly')
     selected_period_label = request.args.get('period')
 
-    conn = db_manager.connect()
-    c = conn.cursor()
+    with db_manager.connect() as conn:
+        c = conn.cursor()
 
-    c.execute('SELECT DISTINCT strftime("%Y-%m", date) FROM Expenses ORDER BY date DESC')
-    month_keys = [row[0] for row in c.fetchall()]
-    c.execute('SELECT DISTINCT strftime("%Y-%W", date) FROM Expenses ORDER BY date DESC')
-    week_keys = [row[0] for row in c.fetchall()]
+        c.execute('SELECT DISTINCT strftime("%Y-%m", date) FROM Expenses ORDER BY date DESC')
+        month_keys = [row[0] for row in c.fetchall()]
+        c.execute('SELECT DISTINCT strftime("%Y-%W", date) FROM Expenses ORDER BY date DESC')
+        week_keys = [row[0] for row in c.fetchall()]
 
-    month_periods = [month_name[int(m.split("-")[1])] + " " + m.split("-")[0] for m in month_keys]
-    week_periods = [f"Week {int(w.split('-')[1])} {w.split('-')[0]}" for w in week_keys]
+        month_periods = [month_name[int(m.split("-")[1])] + " " + m.split("-")[0] for m in month_keys]
+        week_periods = [f"Week {int(w.split('-')[1])} {w.split('-')[0]}" for w in week_keys]
 
-    if not selected_period_label:
-        if view_mode == 'monthly' and month_keys:
-            selected_period_label = month_periods[0]
-        elif view_mode == 'weekly' and week_keys:
-            selected_period_label = week_periods[0]
-
-    if view_mode == 'monthly':
-        periods = month_periods
-        if selected_period_label in periods:
-            idx = periods.index(selected_period_label)
-            query_period = month_keys[idx]
-        else:
-            query_period = datetime.now().strftime('%Y-%m')
-            selected_period_label = month_name[int(query_period.split('-')[1])] + " " + query_period.split('-')[0]
-    else:
-        periods = week_periods
-        if selected_period_label in periods:
-            idx = periods.index(selected_period_label)
-            query_period = week_keys[idx]
-        else:
-            query_period = datetime.now().strftime('%Y-%W')
-            selected_period_label = f"Week {int(query_period.split('-')[1])} {query_period.split('-')[0]}"
-
-    try:
-        if view_mode == 'monthly':
-            c.execute('SELECT * FROM Expenses WHERE strftime("%Y-%m", date) = ? ORDER BY date DESC', (query_period,))
-        else:
-            c.execute('SELECT * FROM Expenses WHERE strftime("%Y-%W", date) = ? ORDER BY date DESC', (query_period,))
-        expenses = c.fetchall()
+        if not selected_period_label:
+            if view_mode == 'monthly' and month_keys:
+                selected_period_label = month_periods[0]
+            elif view_mode == 'weekly' and week_keys:
+                selected_period_label = week_periods[0]
 
         if view_mode == 'monthly':
-            c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ? GROUP BY category', (query_period,))
+            periods = month_periods
+            if selected_period_label in periods:
+                idx = periods.index(selected_period_label)
+                query_period = month_keys[idx]
+            else:
+                query_period = datetime.now().strftime('%Y-%m')
+                selected_period_label = month_name[int(query_period.split('-')[1])] + " " + query_period.split('-')[0]
         else:
-            c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ? GROUP BY category', (query_period,))
-        summary_data = c.fetchall()
+            periods = week_periods
+            if selected_period_label in periods:
+                idx = periods.index(selected_period_label)
+                query_period = week_keys[idx]
+            else:
+                query_period = datetime.now().strftime('%Y-%W')
+                selected_period_label = f"Week {int(query_period.split('-')[1])} {query_period.split('-')[0]}"
 
-        if view_mode == 'monthly':
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ? AND category != "saving"', (query_period,))
-            total_spent = c.fetchone()[0] or 0
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%m", date) = ?', (query_period,))
-            total_saved = c.fetchone()[0] or 0
-        else:
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ? AND category != "saving"', (query_period,))
-            total_spent = c.fetchone()[0] or 0
-            c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%W", date) = ?', (query_period,))
-            total_saved = c.fetchone()[0] or 0
+        try:
+            if view_mode == 'monthly':
+                c.execute('SELECT * FROM Expenses WHERE strftime("%Y-%m", date) = ? ORDER BY date DESC', (query_period,))
+            else:
+                c.execute('SELECT * FROM Expenses WHERE strftime("%Y-%W", date) = ? ORDER by date DESC', (query_period,))
+            expenses = c.fetchall()
 
-        c.execute('SELECT target_amount FROM Goals WHERE is_active = 1')
-        goal = c.fetchone()
-        saving_percent = 0
-        if goal and goal[0] > 0:
-            saving_percent = int(round((total_saved / goal[0]) * 100))
-            saving_percent = max(0, min(saving_percent, 100))
-    except Exception as e:
-        print(f"Error fetching summary data: {e}")
-        expenses = []
-        summary_data = []
-        total_spent = 0
-        total_saved = 0
-        saving_percent = 0
+            if view_mode == 'monthly':
+                c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ? GROUP BY category', (query_period,))
+            else:
+                c.execute('SELECT category, SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ? GROUP BY category', (query_period,))
+            summary_data = c.fetchall()
 
-    conn.close()
+            if view_mode == 'monthly':
+                c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%m", date) = ? AND category != "saving"', (query_period,))
+                total_spent = c.fetchone()[0] or 0
+                c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%m", date) = ?', (query_period,))
+                total_saved = c.fetchone()[0] or 0
+            else:
+                c.execute('SELECT SUM(amount) FROM Expenses WHERE strftime("%Y-%W", date) = ? AND category != "saving"', (query_period,))
+                total_spent = c.fetchone()[0] or 0
+                c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND strftime("%Y-%W", date) = ?', (query_period,))
+                total_saved = c.fetchone()[0] or 0
 
-    try:
-        total_spent = float(total_spent)
-    except (TypeError, ValueError):
-        total_spent = 0.0
-    try:
-        total_saved = float(total_saved)
-    except (TypeError, ValueError):
-        total_saved = 0.0
+            c.execute('SELECT target_amount FROM Goals WHERE is_active = 1')
+            goal = c.fetchone()
+            saving_percent = 0
+            if goal and goal[0] > 0:
+                saving_percent = int(round((total_saved / goal[0]) * 100))
+                saving_percent = max(0, min(saving_percent, 100))
+        except Exception as e:
+            print(f"Error fetching summary data: {e}")
+            expenses = []
+            summary_data = []
+            total_spent = 0
+            total_saved = 0
+            saving_percent = 0
 
-    summary_data = [(cat, float(tot) if tot is not None else 0.0) for cat, tot in summary_data]
+        try:
+            total_spent = float(total_spent)
+        except (TypeError, ValueError):
+            total_spent = 0.0
+        try:
+            total_saved = float(total_saved)
+        except (TypeError, ValueError):
+            total_saved = 0.0
 
-    expenses = [(
-        exp[0],
-        float(exp[1]) if exp[1] is not None else 0.0,
-        exp[2],
-        exp[3],
-        exp[4],
-        exp[5]
-    ) for exp in expenses]
+        summary_data = [(cat, float(tot) if tot is not None else 0.0) for cat, tot in summary_data]
+
+        expenses = [(
+            exp[0],
+            float(exp[1]) if exp[1] is not None else 0.0,
+            exp[2],
+            exp[3],
+            exp[4],
+            exp[5]
+        ) for exp in expenses]
 
     return render_template(
         'summary.html',
@@ -464,30 +500,29 @@ def summary():
 
 @app.route('/saving')
 def saving():
-    conn = db_manager.connect()
-    c = conn.cursor()
-    c.execute('SELECT * FROM Goals')
-    goals_raw = c.fetchall()
+    with db_manager.connect() as conn:
+        c = conn.cursor()
+        c.execute('SELECT * FROM Goals')
+        goals_raw = c.fetchall()
 
-    c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving"')
-    total_saved = c.fetchone()[0] or 0.0
+        c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving"')
+        total_saved = c.fetchone()[0] or 0.0
 
-    goals = []
-    for goal in goals_raw:
-        goal_id = goal[0]
-        target_amount = goal[2]
+        goals = []
+        for goal in goals_raw:
+            goal_id = goal[0]
+            target_amount = goal[2]
 
-        c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND description = ?', (goal[1],))
-        progress = c.fetchone()[0] or 0.0
+            c.execute('SELECT SUM(amount) FROM Expenses WHERE category = "saving" AND description = ?', (goal[1],))
+            progress = c.fetchone()[0] or 0.0
 
-        remaining = target_amount - progress
-        if remaining < 0:
-            remaining = 0.0
+            remaining = target_amount - progress
+            if remaining < 0:
+                remaining = 0.0
 
-        new_goal = (goal[0], goal[1], goal[2], goal[3], remaining, goal[4], goal[5])
-        goals.append(new_goal)
+            new_goal = (goal[0], goal[1], goal[2], goal[3], remaining, goal[4], goal[5])
+            goals.append(new_goal)
 
-    conn.close()
     return render_template('saving.html', goals=goals, total_saved=total_saved)
 
 @app.route('/add-goal', methods=['POST'])

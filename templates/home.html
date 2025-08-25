@@ -84,9 +84,11 @@
       <section class="card">
         <h2>Savings</h2>
         <p>${{ total_saved }}</p>
-        {% if active_goal_name and active_goal_target %}
+        {% if all_goals %}
         <ul class="category-summary">
-          <li>✔ Goal: {{ active_goal_name }}, ${{ "%.2f"|format(active_goal_target) }}</li>
+            {% for goal in all_goals %}
+            <li>✔ Goal: {{ goal[0] }}, Target: ${{ "%.2f"|format(goal[1]) }}</li>
+            {% endfor %}
         </ul>
         {% endif %}
       </section>
